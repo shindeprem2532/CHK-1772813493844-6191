@@ -1,0 +1,2291 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>GhostVault Pro | Elite Analytics</title>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+
+            --bg: #050505;
+
+            --sidebar: #0f0f0f;
+
+            --surface: #1a1a1a;
+
+            --primary: #3ea6ff;
+
+            --accent: #bb86fc;
+
+            --text: #ffffff;
+
+            --text-dim: #909090;
+
+            --error: #ff4e4e;
+
+            --success: #00e676;
+
+            --border: #2a2a2a;
+
+            --glass: rgba(255, 255, 255, 0.03);
+
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+
+            font-family: 'Inter', sans-serif;
+
+            background-color: var(--bg);
+
+            color: var(--text);
+
+            margin: 0;
+
+            display: flex;
+
+            height: 100vh;
+
+            overflow: hidden;
+
+        }
+
+        @keyframes superFade {
+
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.9);
+                filter: blur(10px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+                filter: blur(0px);
+            }
+
+        }
+
+        .welcome-anim {
+
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+
+            font-size: 3rem;
+            color: var(--primary);
+            font-weight: 900;
+
+            text-shadow: 0 0 20px rgba(62, 166, 255, 0.4);
+            z-index: 9999;
+            pointer-events: none;
+
+            background: rgba(0, 0, 0, 0.9);
+            width: 100%;
+            height: 100%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+        }
+
+        #authWrapper {
+
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+
+        }
+
+        .auth-card {
+
+            background: var(--sidebar);
+            padding: 40px;
+            border-radius: 24px;
+
+            width: 100%;
+            max-width: 450px;
+            border: 1px solid var(--border);
+
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+
+        }
+
+        .pass-group {
+            position: relative;
+            width: 100%;
+        }
+
+        .pass-toggle {
+
+            position: absolute;
+            right: 12px;
+            top: 22px;
+            cursor: pointer;
+            color: var(--text-dim);
+
+        }
+
+        .sidebar {
+
+            width: 280px;
+            background: var(--sidebar);
+            border-right: 1px solid var(--border);
+
+            display: flex;
+            flex-direction: column;
+
+        }
+
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            background: var(--bg);
+        }
+
+        .top-bar {
+
+            height: 70px;
+            background: rgba(15, 15, 15, 0.85);
+            backdrop-filter: blur(12px);
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 30px;
+            border-bottom: 1px solid var(--border);
+
+            position: sticky;
+            top: 0;
+            z-index: 100;
+
+        }
+
+        .nav-link {
+
+            padding: 16px 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+
+            cursor: pointer;
+            color: var(--text-dim);
+            border-radius: 0 25px 25px 0;
+
+            margin: 4px 0;
+            font-weight: 500;
+
+        }
+
+        .nav-link.active {
+
+            background: #272727;
+            color: var(--text);
+            border-left: 5px solid var(--primary);
+
+        }
+
+        .grid-container {
+
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+
+            gap: 25px;
+            padding: 30px;
+
+        }
+
+        .card {
+
+            background: var(--surface);
+            padding: 25px;
+            border-radius: 20px;
+
+            border: 1px solid var(--border);
+
+        }
+
+        .card:hover {
+            border-color: var(--primary);
+        }
+
+        input,
+        select {
+
+            width: 100%;
+            padding: 14px;
+            margin: 10px 0;
+
+            background: #000;
+            border: 1px solid var(--border);
+            color: white;
+
+            border-radius: 10px;
+
+        }
+
+        .btn-primary {
+
+            background: var(--primary);
+            color: #000;
+            font-weight: bold;
+
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+
+        }
+
+        .btn-primary:hover {
+
+            background: #5db6ff;
+            box-shadow: 0 0 20px rgba(62, 166, 255, 0.4);
+
+            transform: translateY(-2px);
+
+        }
+
+        .btn-primary:active {
+            transform: scale(0.96);
+        }
+
+        .btn-danger {
+
+            background: rgba(255, 78, 78, 0.1);
+            color: var(--error);
+
+            border: 1px solid var(--error);
+            padding: 8px 12px;
+
+            border-radius: 6px;
+            cursor: pointer;
+
+        }
+
+        .btn-danger:hover {
+            background: var(--error);
+            color: #000;
+        }
+
+        .credit-card-ui {
+
+            background: linear-gradient(135deg, #222, #000);
+            padding: 25px;
+
+            border-radius: 18px;
+            border: 1px solid #333;
+            position: relative;
+
+            margin-bottom: 15px;
+            min-height: 180px;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+
+        }
+
+        .card-logo-img {
+            height: 25px;
+            width: auto;
+            position: absolute;
+            top: 25px;
+            right: 25px;
+        }
+
+        .remove-card-trigger {
+
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            color: var(--text-dim);
+
+            cursor: pointer;
+            opacity: 0.4;
+            padding: 5px;
+            border-radius: 50%;
+
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+        }
+
+        .remove-card-trigger:hover {
+
+            opacity: 1;
+            color: var(--error);
+            background: rgba(255, 78, 78, 0.1);
+
+            transform: scale(1.1);
+
+        }
+
+        .sub-grid {
+
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+
+        }
+
+        .sub-card {
+
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 30px;
+
+            border-radius: 20px;
+            width: 280px;
+            text-align: center;
+            position: relative;
+
+            cursor: default;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+        }
+
+        .sub-card:hover {
+
+            transform: translateY(-12px);
+            border-color: var(--primary);
+
+            box-shadow: 0 15px 40px rgba(62, 166, 255, 0.15);
+
+        }
+
+        .sub-card.popular {
+            border: 2px solid var(--accent);
+        }
+
+        .sub-tag {
+
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+
+            background: var(--accent);
+            color: #000;
+            font-size: 10px;
+            font-weight: 800;
+
+            padding: 4px 12px;
+            border-radius: 20px;
+
+        }
+
+        .sub-price {
+            font-size: 32px;
+            font-weight: 800;
+            margin: 15px 0;
+        }
+
+        .sub-feature {
+
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+
+            color: var(--text-dim);
+            margin-bottom: 10px;
+            text-align: left;
+
+        }
+
+        .payment-modal {
+
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 5000;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            animation: fadeIn 0.3s ease;
+
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .pfp-container {
+
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 2px dashed var(--border);
+
+            margin: 10px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            overflow: hidden;
+            cursor: pointer;
+            background: #000;
+            position: relative;
+
+        }
+
+        .pfp-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .dash-avatar {
+
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+
+            border: 1px solid var(--primary);
+
+        }
+
+        .category-page {
+            padding: 30px;
+            animation: superFade 0.4s ease;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .chart-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .chart-tab {
+
+            background: var(--border);
+            border: none;
+            color: var(--text-dim);
+
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+
+            cursor: pointer;
+            transition: 0.3s;
+
+        }
+
+        .chart-tab.active {
+
+            background: var(--primary);
+            color: #000;
+            font-weight: bold;
+
+        }
+    </style>
+
+<style>
+/* Chatbot Styles - New Addition */
+.chatbot-toggle {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    background: var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(62, 166, 255, 0.3);
+    z-index: 10000;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.chatbot-toggle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 15px 40px rgba(62, 166, 255, 0.4);
+}
+
+.chatbot-toggle i {
+    color: #000;
+    font-size: 24px;
+}
+
+#chatbotModal {
+    position: fixed;
+    bottom: 100px;
+    right: 30px;
+    width: 350px;
+    height: 500px;
+    background: var(--surface);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    z-index: 10001;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.chatbot-header {
+    background: var(--sidebar);
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.chatbot-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+    font-weight: bold;
+}
+
+.chatbot-title {
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.chatbot-close {
+    margin-left: auto;
+    cursor: pointer;
+    color: var(--text-dim);
+    padding: 5px;
+    border-radius: 50%;
+    transition: color 0.2s;
+}
+
+.chatbot-close:hover {
+    color: var(--error);
+}
+
+.chatbot-messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background: var(--glass);
+}
+
+.message {
+    margin-bottom: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.message.user {
+    justify-content: flex-end;
+}
+
+.message.bot {
+    justify-content: flex-start;
+}
+
+.message-bubble {
+    max-width: 80%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.message.user .message-bubble {
+    background: var(--primary);
+    color: #000;
+    border-bottom-right-radius: 4px;
+}
+
+.message.bot .message-bubble {
+    background: var(--border);
+    color: var(--text);
+    border-bottom-left-radius: 4px;
+}
+
+.chatbot-input {
+    padding: 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+}
+
+.chatbot-input input {
+    flex: 1;
+    background: #000;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 12px 16px;
+    color: var(--text);
+    outline: none;
+}
+
+.chatbot-input input::placeholder {
+    color: var(--text-dim);
+}
+
+.chatbot-input button {
+    width: 40px;
+    height: 40px;
+    background: var(--primary);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+}
+
+.chatbot-input button:hover {
+    background: #5db6ff;
+}
+
+/* Scrollbar for messages */
+.chatbot-messages::-webkit-scrollbar {
+    width: 4px;
+}
+
+.chatbot-messages::-webkit-scrollbar-track {
+    background: var(--border);
+}
+
+.chatbot-messages::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 2px;
+}
+</style>
+
+</head>
+
+<body>
+
+    <div id="paymentGateway" class="payment-modal hidden">
+
+        <div id="paymentStatus" style="text-align:center;">
+
+            <i data-lucide="shield-check" style="width:60px;height:60px;color:var(--primary);margin-bottom:20px;"></i>
+
+            <h2 id="payMsg">Initializing Secure Gateway...</h2>
+
+            <div
+                style="width:200px;height:4px;background:var(--border);margin:20px auto;border-radius:10px;overflow:hidden;">
+
+                <div id="payProgress"
+                    style="width:0%;height:100%;background:var(--primary);transition:width 1.5s ease;"></div>
+
+            </div>
+
+            <p style="color:var(--text-dim);font-size:12px;">GhostVault Encryption Active</p>
+
+        </div>
+
+    </div>
+
+    <div id="welcomeOverlay" class="hidden"></div>
+
+    <div id="authWrapper">
+
+        <div class="auth-card">
+
+            <h2 style="color:var(--primary);margin:0;">GHOSTVAULT PRO</h2>
+
+            <p style="color:var(--text-dim);margin-bottom:25px;">Secure Ledger Initialization</p>
+
+            <input type="email" id="authEmail" placeholder="Authentic Email (e.g. user@gmail.com)">
+
+            <div class="pass-group">
+
+                <input type="password" id="authPass" placeholder="Vault Key (8+ Chars & Special)">
+
+                <i data-lucide="eye" class="pass-toggle" onclick="togglePass('authPass')"></i>
+
+            </div>
+
+            <div class="pass-group">
+
+                <input type="password" id="authPassConfirm" placeholder="Confirm Vault Key">
+
+                <i data-lucide="eye" class="pass-toggle" onclick="togglePass('authPassConfirm')"></i>
+
+            </div>
+
+            <div class="captcha-box" id="captchaText"
+                style="background:#000;padding:15px;margin:15px 0;letter-spacing:8px;color:var(--accent);font-weight:bold;text-align:center;">
+
+                ----
+
+            </div>
+
+            <input type="text" id="captchaInput" placeholder="Enter Captcha">
+
+            <button onclick="processAuth()" class="btn-primary" style="margin-top:15px;">INITIALIZE SESSION</button>
+
+            <p onclick="alert('Contact support@ghostvault.pro')"
+                style="color:var(--text-dim);font-size:12px;text-align:center;cursor:pointer;margin-top:15px;">
+
+                Forgot Vault Key?
+
+            </p>
+
+        </div>
+
+    </div>
+
+    <div class="sidebar">
+
+        <div style="padding:30px 25px;font-size:20px;font-weight:900;color:var(--primary);">
+
+            <i data-lucide="shield-check"></i> GV PRO
+
+        </div>
+
+        <div class="nav-link active" onclick="switchTab('home')"><i data-lucide="layout"></i> Dashboard</div>
+
+        <div class="nav-link" onclick="switchTab('subscription')"><i data-lucide="zap"></i> Subscription</div>
+
+        <div class="nav-link" onclick="switchTab('explore')"><i data-lucide="compass"></i> Explore</div>
+
+        <div class="nav-link" onclick="switchTab('autopay')"><i data-lucide="repeat"></i> Autopay</div>
+
+        <div class="nav-link" onclick="switchTab('sites')"><i data-lucide="globe"></i> Saved Sites</div>
+
+        <div class="nav-link" onclick="switchTab('cards')"><i data-lucide="credit-card"></i> Card Vault</div>
+
+        <div class="nav-link" onclick="switchTab('settings')"><i data-lucide="user-cog"></i> Settings</div>
+
+        <div style="margin-top:auto;padding:25px;">
+
+            <button onclick="location.reload()" class="btn-danger" style="width:100%">LOGOUT SESSION</button>
+
+        </div>
+
+    </div>
+
+    <div class="main-content">
+
+        <div class="top-bar">
+
+            <div id="viewTitle" style="font-weight:800;letter-spacing:1px;">DASHBOARD</div>
+
+            <div style="display:flex;align-items:center;gap:15px;">
+
+                <span id="subBadge"
+                    style="background:var(--accent);color:#000;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:bold;display:none;">FREE</span>
+
+                <span id="currencyDisplay" style="color:var(--accent);font-weight:bold;">$</span>
+
+                <img id="userAvatarHeader" class="dash-avatar hidden" src="">
+
+                <div id="userBadge" style="font-size:12px;color:var(--primary);">UNAUTHORIZED</div>
+
+            </div>
+
+        </div>
+
+        <div id="tab-home" class="tab-view">
+
+            <div class="grid-container">
+
+                <div class="card"
+                    style="grid-column:span 2;position:relative;overflow:hidden;background:linear-gradient(145deg,#1a1a1a,#0d0d0d);">
+
+                    <div
+                        style="position:absolute;top:-50px;right:-20px;width:150px;height:150px;background:var(--primary);opacity:0.1;filter:blur(50px);border-radius:50%;pointer-events:none;">
+                    </div>
+
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+
+                        <div>
+
+                            <p
+                                style="color:var(--text-dim);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;display:flex;align-items:center;gap:8px;">
+
+                                <i data-lucide="wallet" size="16"></i> Available Liquidity
+
+                            </p>
+
+                            <h1 id="totalSpend"
+                                style="font-size:54px;margin:0;background:linear-gradient(to right,#fff,var(--primary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+
+                                $0.00
+
+                            </h1>
+
+                        </div>
+
+                        <button class="btn-primary"
+                            style="width:auto;padding:10px 20px;border-radius:8px;font-size:13px;display:flex;align-items:center;gap:8px;"
+                            onclick="switchTab('explore')">
+
+                            <i data-lucide="plus" size="16"></i> Add Funds
+
+                        </button>
+
+                    </div>
+
+                    <div
+                        style="margin-top:30px;background:rgba(0,0,0,0.2);border-radius:12px;padding:15px;border:1px solid var(--border);">
+
+                        <div
+                            style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:10px;">
+
+                            <h3 style="margin:0;font-size:14px;color:var(--text-dim);">Recent Activity</h3>
+
+                        </div>
+
+                        <div id="historyList"></div>
+
+                    </div>
+
+                </div>
+
+                <div class="card" style="grid-column:span 2;">
+
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+
+                        <h3 style="margin:0;">Expense Analytics</h3>
+
+                        <div class="chart-tabs">
+
+                            <button class="chart-tab active" onclick="changeChartType('bar',this)">Bar</button>
+
+                            <button class="chart-tab" onclick="changeChartType('line',this)">Line</button>
+
+                            <button class="chart-tab" onclick="changeChartType('doughnut',this)">Doughnut</button>
+
+                        </div>
+
+                    </div>
+
+                    <div class="chart-container">
+
+                        <canvas id="expenseChart"></canvas>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div id="tab-subscription" class="tab-view hidden">
+
+            <div class="category-page" id="subscriptionContent"></div>
+
+        </div>
+
+        <div id="tab-settings" class="tab-view hidden">
+
+            <div class="grid-container">
+
+                <div class="card">
+
+                    <h3>User Identity</h3>
+
+                    <div class="pfp-container" onclick="document.getElementById('pfpInput').click()">
+
+                        <img id="pfpPreview" src="" class="hidden">
+
+                        <i data-lucide="upload-cloud" id="pfpIcon"></i>
+
+                    </div>
+
+                    <input type="file" id="pfpInput" class="hidden" accept="image/*" onchange="previewImage(this)">
+
+                    <input type="text" id="setPhone" placeholder="Contact Number">
+
+                    <input type="email" id="setEmail" placeholder="Update Email ID">
+
+                    <p style="margin-top:15px;color:var(--primary);font-size:12px;">Preferred Currency</p>
+
+                    <select id="setCurrency" onchange="updateCurrency()">
+
+                        <option value="$">USD - US Dollar ($)</option>
+
+                        <option value="₹">INR - Indian Rupee (₹)</option>
+
+                        <option value="£">GBP - British Pound (£)</option>
+
+                        <option value="€">EUR - Euro (€)</option>
+
+                        <option value="¥">JPY - Japanese Yen (¥)</option>
+
+                        <option value="₿">BTC - Bitcoin (₿)</option>
+
+                    </select>
+
+                    <button class="btn-primary" onclick="saveProfile()">SAVE IDENTITY</button>
+
+                </div>
+
+                <div class="card">
+
+                    <h3>Security Engine</h3>
+
+                    <input type="password" id="setOldPass" placeholder="Current Vault Key">
+
+                    <input type="password" id="setNewPass" placeholder="New Vault Key">
+
+                    <button class="btn-primary" onclick="alert('Password change simulation – key updated.')"
+                        style="background:var(--accent)">UPDATE KEY</button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div id="tab-explore" class="tab-view hidden">
+
+            <div class="grid-container" id="categoryGrid"></div>
+
+        </div>
+
+        <div id="tab-autopay" class="tab-view hidden">
+
+            <div class="category-page">
+
+                <div class="grid-container">
+
+                    <div class="card" style="grid-column:span 2;">
+
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+
+                            <h2 style="margin:0;">Autopay Overview</h2>
+
+                            <div style="font-size:18px;font-weight:bold;color:var(--success);">
+
+                                Monthly Recurring: <span id="autopayMonthlyTotal">${selectedCurrency}0.00</span>
+
+                            </div>
+
+                        </div>
+
+                        <div id="autopayList" style="min-height:120px;"></div>
+
+                    </div>
+
+                    <div class="card">
+
+                        <h3>Add New Recurring Payment</h3>
+
+                        <input type="text" id="autopayName"
+                            placeholder="Service / Merchant (Netflix, Spotify, Gym, etc.)">
+
+                        <input type="number" id="autopayAmount" placeholder="Monthly Amount" step="0.01">
+
+                        <select id="autopayCurrency">
+
+                            <option value="$">USD ($)</option>
+
+                            <option value="₹">INR (₹)</option>
+
+                            <option value="€">EUR (€)</option>
+
+                            <option value="£">GBP (£)</option>
+
+                        </select>
+
+                        <input type="date" id="autopayStartDate">
+
+                        <select id="autopayStatus">
+
+                            <option value="active">Active</option>
+
+                            <option value="paused">Paused</option>
+
+                        </select>
+
+                        <button onclick="addAutopay()" class="btn-primary" style="margin-top:15px;">ADD AUTOPAY</button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div id="tab-sites" class="tab-view hidden">
+
+            <div class="category-page">
+
+                <div class="grid-container">
+
+                    <div class="card" style="grid-column:span 2;">
+
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+
+                            <h2 style="margin:0;">Saved Sites Manager</h2>
+
+                            <button class="btn-primary" style="width:auto;padding:8px 16px;"
+                                onclick="document.getElementById('addSiteModal').classList.remove('hidden')">Add
+                                Site</button>
+
+                        </div>
+
+                        <p style="color:var(--text-dim);margin-bottom:20px;">Track websites where your card is saved and
+                            get guides to remove them.</p>
+
+                        <div id="sitesList" style="min-height:120px;"></div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div id="addSiteModal" class="payment-modal hidden" style="z-index:6000;">
+
+                <div class="auth-card" style="max-width:400px;">
+
+                    <h3>Add Site with Saved Card</h3>
+
+                    <input type="text" id="siteName" placeholder="Site Name (e.g. Amazon)">
+
+                    <input type="text" id="siteUrl" placeholder="Site URL (optional)">
+
+                    <select id="siteStatus">
+
+                        <option value="active">Card Saved</option>
+
+                        <option value="removed">Removed</option>
+
+                    </select>
+
+                    <button onclick="addSite()" class="btn-primary" style="margin-top:15px;">ADD SITE</button>
+
+                    <button class="btn-danger" style="margin-top:10px;width:100%;background:none;border:none;"
+                        onclick="document.getElementById('addSiteModal').classList.add('hidden')">Cancel</button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div id="tab-cards" class="tab-view hidden">
+
+            <div class="grid-container">
+
+                <div class="card" style="grid-column:span 2;">
+
+                    <h3>Managed Cards</h3>
+
+                    <div id="cardList" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;"></div>
+
+                </div>
+
+                <div class="card">
+
+                    <h3>Register Asset</h3>
+
+                    <input type="text" id="cardHolder" placeholder="Holder Name">
+
+                    <input type="text" id="cardNumber" placeholder="16 Digit Number" maxlength="16">
+
+                    <select id="cardNature">
+
+                        <option>Credit Card</option>
+
+                        <option>Debit Card</option>
+
+                    </select>
+
+                    <div style="display:flex;gap:10px;">
+
+                        <input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5">
+
+                        <input type="password" id="cardCVV" placeholder="CVV" maxlength="3">
+
+                    </div>
+
+                    <select id="cardType">
+
+                        <option value="Visa">Visa Elite</option>
+
+                        <option value="Mastercard">Mastercard</option>
+
+                        <option value="Amex">American Express</option>
+
+                        <option value="RuPay">RuPay</option>
+
+                        <option value="Crypto">Crypto Cold Card</option>
+
+                    </select>
+
+                    <button onclick="addCard()" class="btn-primary">SECURE ADD</button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div id="category-page" class="hidden">
+
+            <div class="category-page" id="catPageContent"></div>
+
+        </div>
+
+    </div>
+
+<!-- New Chatbot HTML -->
+<button id="chatbotToggle" class="chatbot-toggle">
+    <i data-lucide="message-circle"></i>
+</button>
+
+<div id="chatbotModal" class="hidden">
+    <div class="chatbot-header">
+        <div class="chatbot-avatar">GV</div>
+        <div class="chatbot-title">GhostVault Assistant</div>
+        <div class="chatbot-close" onclick="toggleChatbot()">×</div>
+    </div>
+    <div class="chatbot-messages" id="chatbotMessages">
+        <div class="message bot">
+            <div class="message-bubble">Hello! I'm here to help with GhostVault Pro. Ask me about features, subscriptions, cards, or any app-related questions.</div>
+        </div>
+    </div>
+    <div class="chatbot-input">
+        <input type="text" id="chatbotInput" placeholder="Type your question..." onkeypress="handleKeyPress(event)">
+        <button onclick="sendMessage()">
+            <i data-lucide="send"></i>
+        </button>
+    </div>
+</div>
+
+    <script>
+
+        let currentSession = null;
+
+        let captchaCode = "";
+
+        let selectedCurrency = "$";
+
+        let myChart = null;
+
+        let activeChartType = 'bar';
+
+        const categories = {
+
+            'Food': { icon: 'coffee', color: '#ffab40', detail: 'Track meals and dining.' },
+
+            'Travel': { icon: 'plane', color: '#3ea6ff', detail: 'Log trips and transit.' },
+
+            'Health': { icon: 'activity', color: '#ff4e4e', detail: 'Medical and wellness costs.' },
+
+            'Tech': { icon: 'cpu', color: '#bb86fc', detail: 'Gear and subscriptions.' },
+
+            'Autopay': { icon: 'repeat', color: '#00e676', detail: 'Recurring payments & subscriptions.' }
+
+        };
+
+        const cardLogos = {
+
+            'Visa': `<svg viewBox="0 0 48 48" width="40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18.8 31.4l2.5-14.8h4l-2.5 14.8h-4zm15.4-14.4c-.8-.3-2.1-.6-3.7-.6-4.1 0-7 2.2-7 5.3 0 2.3 2 3.6 3.6 4.3 1.6.8 2.2 1.3 2.1 2-.1 1.1-1.3 1.6-2.5 1.6-1.7 0-2.6-.3-4-.9l-.6-.3-.6 3.8c1 .5 2.9.9 4.8.9 4.4 0 7.2-2.2 7.3-5.5.1-1.8-1.1-3.2-3.6-4.4-1.5-.8-2.4-1.3-2.4-2.1 0-.7.8-1.5 2.5-1.5.9 0 1.6.2 2.5.5l.3.1.7-3.8zM44 16.6h-3.1c-1 0-1.7.3-2.1 1.3l-5.9 13.5h4.2l.8-2.3h5.2l.5 2.3H48l-4-14.8zm-4.3 8.3l1.8-4.9.9 4.9h-2.7zM11.7 16.6H7.5L3 27.2c-.4 1.1-.5 1.5-.5 1.5L7.2 18.2c.4-1.1 1.2-1.6 2.1-1.6h6.7l-4.3 14.8h4.3l6.7-14.8z" fill="#fff"/></svg>`,
+
+            'Mastercard': `<svg viewBox="0 0 48 48" width="40" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="24" r="12" fill="#eb001b"/><circle cx="30" cy="24" r="12" fill="#ff5f00"/><path d="M24 13.5c-2.9 2.5-4.7 6.2-4.7 10.5s1.8 8 4.7 10.5c2.9-2.5 4.7-6.2 4.7-10.5s-1.8-8-4.7-10.5z" fill="#ff5f00"/></svg>`,
+
+            'Amex': `<svg viewBox="0 0 48 48" width="40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="48" rx="4" fill="#007bc1"/><path d="M12.4 28.5l-1.1-2.9H6.7l-1.1 2.9H3.1l4.8-12.2h2.5l4.8 12.2h-2.8zm-4.7-5.1h2.7L9 20l-1.3 3.4zm18.3 5.1V16.3h2.3l2.8 5 2.8-5h2.3v12.2h-2.3v-7.3l-2.8 4.8h-.2l-2.8-4.8v7.3h-2.3zm15.7 0V16.3h6.6v2.1h-4.3v2.8h3.9v2.1h-3.9v3.1h4.4v2.1h-6.7z" fill="#fff"/></svg>`,
+
+            'RuPay': `<div style="color:white;font-weight:900;font-style:italic;font-size:14px;border-bottom:2px solid #00a1e1">RuPay <span style="color:#f26522">❯</span></div>`,
+
+            'Crypto': `<i data-lucide="cpu" color="var(--primary)"></i>`
+
+        };
+
+        const removalGuides = {
+
+            'Amazon': {
+
+                steps: '1. Go to Amazon.com and sign in.\n2. Click Your Account > Payment options.\n3. Select the card, click Delete, then Confirm delete.',
+
+                link: 'https://pay.amazon.com/help/201754700'
+
+            },
+
+            'Netflix': {
+
+                steps: '1. Go to Netflix.com and sign in.\n2. Go to Account > Manage payment info.\n3. Delete the payment method.',
+
+                link: 'https://help.netflix.com/en/node/113408'
+
+            },
+
+            'Google Pay': {
+
+                steps: '1. Go to payments.google.com.\n2. Click Payment methods.\n3. Next to the card, click Remove > Remove.',
+
+                link: 'https://support.google.com/googlepay/answer/10197016'
+
+            },
+
+            'Apple Pay': {
+
+                steps: '1. Open Wallet app on iPhone.\n2. Tap the card > More > Card Details > Remove Card.',
+
+                link: 'https://support.apple.com/en-us/118219'
+
+            },
+
+            'PayPal': {
+
+                steps: '1. Go to PayPal.com and log in.\n2. Go to Wallet.\n3. Click the card > Remove card.',
+
+                link: 'https://www.paypal.com/us/cshelp/article/how-do-i-remove-a-debit-or-credit-card-from-my-paypal-account-help158'
+
+            },
+
+            'Uber': {
+
+                steps: '1. Open Uber app.\n2. Go to Menu > Payments.\n3. Tap the payment method > Settings > Delete.',
+
+                link: 'https://help.uber.com/riders/article/deleting-a-payment-method'
+
+            },
+
+            'Spotify': {
+
+                steps: '1. Go to Spotify.com/account.\n2. Go to Saved Payment Cards.\n3. Click the card > Remove Saved Card.',
+
+                link: 'https://support.spotify.com/us/article/change-payment-details'
+
+            },
+
+            'eBay': {
+
+                steps: '1. Go to eBay.com and log in.\n2. Go to Account > Payments.\n3. Find the card and click Remove.',
+
+                link: 'https://www.ebay.com/help/account/payment-methods/removing-payment-method?id=4110'
+
+            }
+
+            // Add more sites as needed
+
+        };
+
+        function togglePass(id) {
+
+            const input = document.getElementById(id);
+
+            input.type = input.type === 'password' ? 'text' : 'password';
+
+        }
+
+        function generateCaptcha() {
+
+            captchaCode = Math.random().toString(36).substring(2, 7).toUpperCase();
+
+            document.getElementById('captchaText').innerText = captchaCode;
+
+        }
+
+        function processAuth() {
+
+            const email = document.getElementById('authEmail').value.trim();
+
+            const p1 = document.getElementById('authPass').value;
+
+            const p2 = document.getElementById('authPassConfirm').value;
+
+            const cap = document.getElementById('captchaInput').value.toUpperCase();
+
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert("Enter valid email.");
+
+            if (p1 !== p2) return alert("Keys do not match.");
+
+            if (p1.length < 8 || !/[!@#$%^&*(),.?":{}|<>]/.test(p1)) return alert("8+ Chars & 1 Special Character required.");
+
+            if (cap !== captchaCode) { alert("Captcha Error"); generateCaptcha(); return; }
+
+            let accounts = JSON.parse(localStorage.getItem('gv_pro_v3') || '{}');
+
+            if (!accounts[email]) {
+
+                accounts[email] = {
+
+                    data: [],
+
+                    cards: [],
+
+                    autopay: [],
+
+                    sites: [],
+
+                    profile: { phone: '', pfp: '', currency: '$', subscription: 'FREE' },
+
+                    pass: p1
+
+                };
+
+            } else if (accounts[email].pass !== p1) {
+
+                return alert("Incorrect Vault Key.");
+
+            }
+
+            localStorage.setItem('gv_pro_v3', JSON.stringify(accounts));
+
+            currentSession = email;
+
+            showWelcome();
+
+        }
+
+        function showWelcome() {
+
+            const over = document.getElementById('welcomeOverlay');
+
+            over.classList.remove('hidden');
+
+            over.innerHTML = `<div class="welcome-anim">ACCESS GRANTED</div>`;
+
+            setTimeout(() => {
+
+                over.classList.add('hidden');
+
+                document.getElementById('authWrapper').classList.add('hidden');
+
+                initUI();
+
+            }, 1800);
+
+        }
+
+        function initUI() {
+
+            const user = JSON.parse(localStorage.getItem('gv_pro_v3'))[currentSession];
+
+            document.getElementById('userBadge').innerText = currentSession;
+
+            selectedCurrency = user.profile.currency || "$";
+
+            document.getElementById('setCurrency').value = selectedCurrency;
+
+            document.getElementById('currencyDisplay').innerText = selectedCurrency;
+
+            document.getElementById('setEmail').value = currentSession;
+
+            document.getElementById('setPhone').value = user.profile.phone || '';
+
+            if (user.profile.pfp) updateAvatarUI(user.profile.pfp);
+
+            const sub = user.profile.subscription || 'FREE';
+
+            const badge = document.getElementById('subBadge');
+
+            badge.innerText = sub.toUpperCase();
+
+            badge.style.display = 'inline-block';
+
+            renderAll();
+
+            renderExplore();
+
+            updateChart();
+
+            renderAutopay();
+
+            renderSites();
+
+        }
+
+        function addCard() {
+
+            const name = document.getElementById('cardHolder').value.trim();
+
+            const num = document.getElementById('cardNumber').value.trim();
+
+            const nature = document.getElementById('cardNature').value;
+
+            const expiry = document.getElementById('cardExpiry').value.trim();
+
+            const cvv = document.getElementById('cardCVV').value.trim();
+
+            const type = document.getElementById('cardType').value;
+
+            if (!name || num.length < 13 || !/^\d{2}\/\d{2}$/.test(expiry) || cvv.length !== 3) {
+
+                return alert("Invalid card details.");
+
+            }
+
+            let accs = JSON.parse(localStorage.getItem('gv_pro_v3'));
+
+            accs[currentSession].cards.push({ name, num: num.slice(-4), nature, expiry, cvv: '***', type });
+
+            localStorage.setItem('gv_pro_v3', JSON.stringify(accs));
+
+            alert("Card securely added to vault.");
+
+            renderAll();
+
+        }
+
+        function removeCard(index) {
+
+            if (!confirm("Remove this card permanently?")) return;
+
+            let accs = JSON.parse(localStorage.getItem('gv_pro_v3'));
+
+            accs[currentSession].cards.splice(index, 1);
+
+            localStorage.setItem('gv_pro_v3', JSON.stringify(accs));
+
+            renderAll();
+
+        }
+
+        function updateCurrency() {
+
+            selectedCurrency = document.getElementById('setCurrency').value;
+
+            document.getElementById('currencyDisplay').innerText = selectedCurrency;
+
+            renderAll();
+
+            renderAutopay();
+
+            renderSites();
+
+        }
+
+        function previewImage(input) {
+
+            if (input.files?.[0]) {
+
+                const reader = new FileReader();
+
+                reader.onload = e => updateAvatarUI(e.target.result);
+
+                reader.readAsDataURL(input.files[0]);
+
+            }
+
+        }
+
+        function updateAvatarUI(src) {
+
+            document.getElementById('pfpPreview').src = src; document.getElementById('pfpPreview').classList.remove('hidden');
+
+            document.getElementById('userAvatarHeader').src = src; document.getElementById('userAvatarHeader').classList.remove('hidden');
+
+            document.getElementById('pfpIcon').classList.add('hidden');
+
+        }
+
+        function saveProfile() {
+
+            let accs = JSON.parse(localStorage.getItem('gv_pro_v3'));
+
+            accs[currentSession].profile.phone = document.getElementById('setPhone').value.trim();
+
+            accs[currentSession].profile.pfp = document.getElementById('pfpPreview').src;
+
+            accs[currentSession].profile.currency = selectedCurrency;
+
+            localStorage.setItem('gv_pro_v3', JSON.stringify(accs));
+
+            alert("Profile updated.");
+
+        }
+
+        function renderExplore() {
+
+            document.getElementById('categoryGrid').innerHTML = Object.keys(categories).map(k => `
+
+        <div class="card">
+
+            <i data-lucide="${categories[k].icon}" style="color:${categories[k].color}"></i>
+
+            <h3>${k}</h3>
+
+            <p style="font-size:12px;color:var(--text-dim)">${categories[k].detail}</p>
+
+            <button onclick="openSubCategory('${k}')" class="btn-primary" style="padding:8px 0">OPEN LEDGER</button>
+
+        </div>
+
+    `).join('');
+
+            lucide.createIcons();
+
+        }
+
+        function openSubCategory(cat) {
+
+            document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
+
+            document.getElementById('category-page').classList.remove('hidden');
+
+            document.getElementById('viewTitle').innerText = cat.toUpperCase();
+
+            const c = categories[cat];
+
+            document.getElementById('catPageContent').innerHTML = `
+
+        <div class="card" style="max-width:520px;margin:0 auto;">
+
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+
+                <i data-lucide="${c.icon}" style="color:${c.color}"></i>
+
+                <h2 style="margin:0;">${cat} Ledger</h2>
+
+            </div>
+
+            <label style="font-size:12px;color:var(--text-dim)">Description</label>
+
+            <input type="text" id="subExpName" placeholder="e.g. Dinner, Taxi, Netflix">
+
+            <label style="font-size:12px;color:var(--text-dim)">Amount (${selectedCurrency})</label>
+
+            <input type="number" id="subExpAmt" step="0.01" placeholder="0.00">
+
+            <button class="btn-primary" onclick="logSubExpense('${cat}')">SAVE ENTRY</button>
+
+            <button class="btn-danger" style="margin-top:12px;width:100%;background:none;border:none;" onclick="switchTab('explore')">Cancel</button>
+
+        </div>
+
+    `;
+
+            lucide.createIcons();
+
+        }
+
+        function logSubExpense(cat) {
+
+            const name = document.getElementById('subExpName').value.trim();
+
+            const amt = parseFloat(document.getElementById('subExpAmt').value);
+
+            if (!name || isNaN(amt) || amt <= 0) return alert("Please enter valid description and amount.");
+
+            let accs = JSON.parse(localStorage.getItem('gv_pro_v3'));
+
+            accs[currentSession].data.push({ name, amt, cat, date: new Date().toISOString() });
+
+            localStorage.setItem('gv_pro_v3', JSON.stringify(accs));
+
+            alert("Expense logged.");
+
+            renderAll();
+
+            updateChart();
+
+            switchTab('home');
+
+        }
+
+        function renderSubscriptionTiers() {
+
+            const user = JSON.parse(localStorage.getItem('gv_pro_v3'))[currentSession];
+
+            const plan = user.profile.subscription || 'FREE';
+
+            document.getElementById('subscriptionContent').innerHTML = `
+
+        <div style="text-align:center;margin-bottom:40px;">
+
+            <h2 style="font-size:32px;margin-bottom:8px;">Choose Your Tier</h2>
+
+            <p style="color:var(--text-dim)">Unlock more powerful vault features</p>
+
+        </div>
+
+        <div class="sub-grid">
+
+            <div class="sub-card">
+
+                <h3>Free</h3>
+
+                <div class="sub-price">${selectedCurrency}0</div>
+
+                <p style="color:var(--text-dim);margin:16px 0 24px;">Basic secure tracking</p>
+
+                <div class="sub-feature"><i data-lucide="check"></i> Local storage</div>
+
+                <div class="sub-feature"><i data-lucide="check"></i> 4 categories</div>
+
+                <div class="sub-feature" style="opacity:0.4;"><i data-lucide="x"></i> Cloud backup</div>
+
+                <button class="btn-primary" style="margin-top:24px;background:var(--border);" disabled>Current Plan</button>
+
+            </div>
+
+            <div class="sub-card popular">
+
+                <div class="sub-tag">RECOMMENDED</div>
+
+                <h3>Advance</h3>
+
+                <div class="sub-price">${selectedCurrency}9</div>
+
+                <p style="color:var(--text-dim);margin:16px 0 24px;">Pro features + cloud</p>
+
+                <div class="sub-feature"><i data-lucide="check"></i> Everything in Free</div>
+
+                <div class="sub-feature"><i data-lucide="check"></i> Encrypted cloud sync</div>
+
+                <div class="sub-feature"><i data-lucide="check"></i> CSV export</div>
+
+                <button onclick="window.open('fake-gateway.html?plan=Advance&price=9.00', '_blank', 'width=620,height=680,...')" class="btn-primary">UPGRADE NOW</button>
+
+            </div>
+
+            <div class="sub-card">
+
+                <h3>Elite</h3>
+
+                <div class="sub-price">${selectedCurrency}29</div>
+
+                <p style="color:var(--text-dim);margin:16px 0 24px;">Maximum security</p>
+
+                <div class="sub-feature"><i data-lucide="check"></i> Everything in Advance</div>
+
+                <div class="sub-feature"><i data-lucide="check"></i> Priority support</div>
+
+                <div class="sub-feature"><i data-lucide="check"></i> Unlimited devices</div>
+
+                <button onclick="window.open('fake-gateway.html?plan=Elite&price=30.00', '_blank', 'width=620,height=680,...')" class="btn-primary">UPGRADE NOW</button>
+
+            </div>
+
+        </div>
+
+    `;
+
+            lucide.createIcons();
+
+        }
+
+        // ────────────────────────────────────────────────
+
+        // AUTOPAY FUNCTIONS
+
+        // ────────────────────────────────────────────────
+
+        function addAutopay() {
+
+            const name = document.getElementById('autopayName').value.trim();
+
+            const amount = parseFloat(document.getElementById('autopayAmount').value);
+
+            const currency = document.getElementById('autopayCurrency').value;
+
+            const start = document.getElementById('autopayStartDate').value;
+
+            const status = document.getElementById('autopayStatus').value;
+
+            if (!name || isNaN(amount) || amount <= 0 || !start) {
+
+                return alert("Please complete all fields with valid values.");
+
+            }
+
+            let accs = JSON.parse(localStorage.getItem('gv_pro_v3'));
+
+            accs[currentSession].autopay = accs[currentSession].autopay || [];
+
+            accs[currentSession].autopay.push({
+
+                name, amount, currency, startDate: start,
+
+                status, added: new Date().toISOString()
+
+            });
+
+            localStorage.setItem('gv_pro_v3', JSON.stringify(accs));
+
+            // reset form
+
+            document.getElementById('autopayName').value = '';
+
+            document.getElementById('autopayAmount').value = '';
+
+            document.getElementById('autopayStartDate').value = '';
+
+            renderAutopay();
+
+            alert("Autopay entry added.");
+
+        }
+
+        function toggleAutopayStatus(idx) {
+
+            let accs = JSON.parse(localStorage.getItem('gv_pro_v3'));
+
+            let entry = accs[currentSession].autopay[idx];
+
+            entry.status = entry.status === 'active' ? 'paused' : 'active';
+
+            localStorage.setItem('gv_pro_v3', JSON.stringify(accs));
+
+            renderAutopay();
+
+        }
+
+        function deleteAutopay(idx) {
+
+            if (!confirm("Delete this recurring payment?")) return;
+
+            let accs = JSON.parse(localStorage.getItem('gv_pro_v3'));
+
+            accs[currentSession].autopay.splice(idx, 1);
+
+            localStorage.setItem('gv_pro_v3', JSON.stringify(accs));
+
+            renderAutopay();
+
+        }
+
+        function renderAutopay() {
+
+            const list = document.getElementById('autopayList');
+
+            if (!list) return;
+
+            let accs = JSON.parse(localStorage.getItem('gv_pro_v3'));
+
+            const items = accs?.[currentSession]?.autopay || [];
+
+            let monthlyTotal = 0;
+
+            if (items.length === 0) {
+
+                list.innerHTML = `<p style="color:var(--text-dim);text-align:center;padding:60px 0;font-size:15px;">
+
+            No recurring payments set up yet.
+
+        </p>`;
+
+            } else {
+
+                list.innerHTML = items.map((it, i) => {
+
+                    const active = it.status === 'active';
+
+                    if (active) monthlyTotal += it.amount;
+
+                    const d = new Date(it.startDate);
+
+                    const next = new Date(d); next.setMonth(next.getMonth() + 1);
+
+                    return `
+
+            <div class="card" style="margin-bottom:16px;${active ? '' : 'opacity:0.65;'}">
+
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;">
+
+                    <div style="flex:1;">
+
+                        <div style="font-weight:600;font-size:16px;">${it.name}</div>
+
+                        <div style="margin:6px 0;color:${active ? 'var(--success)' : 'var(--error)'};">
+
+                            ${it.currency}${it.amount.toFixed(2)} / month • ${it.status.toUpperCase()}
+
+                        </div>
+
+                        <div style="color:var(--text-dim);font-size:13px;">
+
+                            Started ${d.toLocaleDateString()} • Next ${next.toLocaleDateString()}
+
+                        </div>
+
+                    </div>
+
+                    <div style="display:flex;gap:10px;white-space:nowrap;">
+
+                        <button class="btn-primary" style="padding:8px 16px;font-size:13px;${active ? 'background:var(--error);' : 'background:var(--success);'}"
+
+                            onclick="toggleAutopayStatus(${i})">${active ? 'PAUSE' : 'RESUME'}</button>
+
+                        <button class="btn-danger" style="padding:8px 16px;font-size:13px;" onclick="deleteAutopay(${i})">DELETE</button>
+
+                    </div>
+
+                </div>
+
+            </div>`;
+
+                }).join('');
+
+            }
+
+            document.getElementById('autopayMonthlyTotal').textContent = `${selectedCurrency}${monthlyTotal.toFixed(2)}`;
+
+        }
+
+        // ────────────────────────────────────────────────
+
+        // SAVED SITES FUNCTIONS
+
+        // ────────────────────────────────────────────────
+
+        function addSite() {
+
+            const name = document.getElementById('siteName').value.trim();
+
+            const url = document.getElementById('siteUrl').value.trim();
+
+            const status = document.getElementById('siteStatus').value;
+
+            if (!name) return alert("Site name is required.");
+
+            let accs = JSON.parse(localStorage.getItem('gv_pro_v3'));
+
+            accs[currentSession].sites = accs[currentSession].sites || [];
+
+            accs[currentSession].sites.push({ name, url, status, added: new Date().toISOString() });
+
+            localStorage.setItem('gv_pro_v3', JSON.stringify(accs));
+
+            document.getElementById('siteName').value = '';
+
+            document.getElementById('siteUrl').value = '';
+
+            document.getElementById('addSiteModal').classList.add('hidden');
+
+            renderSites();
+
+            alert("Site added.");
+
+        }
+
+        function toggleSiteStatus(idx) {
+
+            let accs = JSON.parse(localStorage.getItem('gv_pro_v3'));
+
+            let entry = accs[currentSession].sites[idx];
+
+            entry.status = entry.status === 'active' ? 'removed' : 'active';
+
+            localStorage.setItem('gv_pro_v3', JSON.stringify(accs));
+
+            renderSites();
+
+        }
+
+        function deleteSite(idx) {
+
+            if (!confirm("Delete this site entry?")) return;
+
+            let accs = JSON.parse(localStorage.getItem('gv_pro_v3'));
+
+            accs[currentSession].sites.splice(idx, 1);
+
+            localStorage.setItem('gv_pro_v3', JSON.stringify(accs));
+
+            renderSites();
+
+        }
+
+        function renderSites() {
+
+            const list = document.getElementById('sitesList');
+
+            if (!list) return;
+
+            let accs = JSON.parse(localStorage.getItem('gv_pro_v3'));
+
+            const items = accs?.[currentSession]?.sites || [];
+
+            if (items.length === 0) {
+
+                list.innerHTML = `<p style="color:var(--text-dim);text-align:center;padding:60px 0;font-size:15px;">
+
+            No sites tracked yet. Add sites where your card is saved.
+
+        </p>`;
+
+            } else {
+
+                list.innerHTML = items.map((it, i) => {
+
+                    const active = it.status === 'active';
+
+                    const guide = removalGuides[it.name] || { steps: 'No specific guide available. Visit site settings.', link: it.url || '' };
+
+                    return `
+
+            <div class="card" style="margin-bottom:16px;${active ? '' : 'opacity:0.65;'}">
+
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;">
+
+                    <div style="flex:1;">
+
+                        <div style="font-weight:600;font-size:16px;">${it.name}</div>
+
+                        <div style="margin:6px 0;color:${active ? 'var(--error)' : 'var(--success)'};">
+
+                            Status: ${it.status.toUpperCase()}
+
+                        </div>
+
+                        <div style="color:var(--text-dim);font-size:13px;white-space:pre-line;">
+
+                            Removal Guide: ${guide.steps}
+
+                        </div>
+
+                        ${guide.link ? `<a href="${guide.link}" target="_blank" style="color:var(--primary);font-size:13px;">Go to Site</a>` : ''}
+
+                    </div>
+
+                    <div style="display:flex;gap:10px;white-space:nowrap;">
+
+                        <button class="btn-primary" style="padding:8px 16px;font-size:13px;${active ? 'background:var(--success);' : 'background:var(--error);'}"
+
+                            onclick="toggleSiteStatus(${i})">${active ? 'MARK REMOVED' : 'MARK ACTIVE'}</button>
+
+                        <button class="btn-danger" style="padding:8px 16px;font-size:13px;" onclick="deleteSite(${i})">DELETE</button>
+
+                    </div>
+
+                </div>
+
+            </div>`;
+
+                }).join('');
+
+            }
+
+            lucide.createIcons();
+
+        }
+
+        function renderAll() {
+
+            const user = JSON.parse(localStorage.getItem('gv_pro_v3'))[currentSession];
+
+            if (!user) return;
+
+            let total = 0;
+
+            document.getElementById('historyList').innerHTML = user.data?.map(d => {
+
+                total += d.amt;
+
+                return `<div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);">
+
+            <span>${d.name} <small style="color:var(--primary)">[${d.cat}]</small></span>
+
+            <span style="color:var(--success)">${selectedCurrency}${d.amt.toFixed(2)}</span>
+
+        </div>`;
+
+            }).join('') || '<p style="color:var(--text-dim);text-align:center;padding:30px 0;">No recent activity</p>';
+
+            document.getElementById('totalSpend').innerText = `${selectedCurrency}${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+
+            document.getElementById('cardList').innerHTML = (user.cards || []).map((c, i) => `
+
+        <div class="credit-card-ui">
+
+            <div class="remove-card-trigger" onclick="removeCard(${i})"><i data-lucide="trash-2" size="14"></i></div>
+
+            <div class="card-logo-img">${cardLogos[c.type] || ''}</div>
+
+            <div>
+
+                <div style="font-weight:bold;color:var(--primary);font-size:11px;letter-spacing:1px;margin-bottom:6px;">${c.type.toUpperCase()} ${c.nature}</div>
+
+                <div style="font-size:20px;letter-spacing:3px;">**** **** **** ${c.num}</div>
+
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;">
+
+                <div>
+
+                    <div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;">Holder</div>
+
+                    <div style="font-size:14px;">${c.name}</div>
+
+                </div>
+
+                <div style="text-align:right">
+
+                    <div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;">Expires</div>
+
+                    <div style="font-size:14px;">${c.expiry}</div>
+
+                </div>
+
+                <div style="text-align:right">
+
+                    <div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;">CVV</div>
+
+                    <div style="font-size:14px;">${c.cvv}</div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    `).join('');
+
+            lucide.createIcons();
+
+        }
+
+        function changeChartType(type, btn) {
+
+            activeChartType = type;
+
+            document.querySelectorAll('.chart-tab').forEach(b => b.classList.remove('active'));
+
+            btn.classList.add('active');
+
+            updateChart();
+
+        }
+
+        function updateChart() {
+
+            const user = JSON.parse(localStorage.getItem('gv_pro_v3'))[currentSession];
+
+            if (!user?.data?.length) return;
+
+            const totals = {};
+
+            user.data.forEach(e => {
+
+                totals[e.cat] = (totals[e.cat] || 0) + e.amt;
+
+            });
+
+            const labels = Object.keys(totals);
+
+            const data = Object.values(totals);
+
+            const colors = ['#ffab40', '#3ea6ff', '#ff4e4e', '#bb86fc', '#00e676', '#4fc3f7'];
+
+            const ctx = document.getElementById('expenseChart').getContext('2d');
+
+            if (myChart) myChart.destroy();
+
+            myChart = new Chart(ctx, {
+
+                type: activeChartType,
+
+                data: {
+
+                    labels,
+
+                    datasets: [{
+
+                        label: 'Amount',
+
+                        data,
+
+                        backgroundColor: activeChartType === 'doughnut' ? colors : 'rgba(62,166,255,0.18)',
+
+                        borderColor: activeChartType === 'doughnut' ? '#0f0f0f' : '#3ea6ff',
+
+                        borderWidth: 2,
+
+                        fill: activeChartType !== 'doughnut'
+
+                    }]
+
+                },
+
+                options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio: false,
+
+                    animation: { duration: 1400, easing: 'easeOutQuart' },
+
+                    plugins: {
+
+                        legend: { display: activeChartType === 'doughnut', labels: { color: '#ddd' } }
+
+                    },
+
+                    scales: activeChartType !== 'doughnut' ? {
+
+                        y: { grid: { color: '#222' }, ticks: { color: '#888' } },
+
+                        x: { grid: { display: false }, ticks: { color: '#888' } }
+
+                    } : {}
+
+                }
+
+            });
+
+        }
+
+        function switchTab(id) {
+
+            document.querySelectorAll('.tab-view, #category-page').forEach(t => t.classList.add('hidden'));
+
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+
+            const link = [...document.querySelectorAll('.nav-link')].find(l => l.textContent.toLowerCase().includes(id));
+
+            if (link) link.classList.add('active');
+
+            const tab = document.getElementById('tab-' + id);
+
+            if (tab) {
+
+                tab.classList.remove('hidden');
+
+                document.getElementById('viewTitle').innerText = id.toUpperCase();
+
+                if (id === 'subscription') renderSubscriptionTiers();
+
+                if (id === 'home') updateChart();
+
+                if (id === 'autopay') renderAutopay();
+
+                if (id === 'sites') renderSites();
+
+            }
+
+        }
+
+        generateCaptcha();
+
+        lucide.createIcons();
+
+    </script>
+
+<!-- New Chatbot Script -->
+<script>
+// Chatbot Functionality - New Addition
+const faqs = {
+    'how to add a card': 'To add a card, go to the Card Vault tab, fill in the holder name, number (16 digits), expiry (MM/YY), CVV (3 digits), and type. Click "SECURE ADD". Your full number is encrypted and only the last 4 digits are shown for security.',
+    'subscription plans': 'We offer Free (basic tracking), Advance ($9/mo - cloud sync & exports), and Elite ($29/mo - priority support & unlimited devices). Upgrade via the Subscription tab.',
+    'add expense': 'Navigate to Explore, select a category like Food, then enter a description and amount to log it. It will appear in your dashboard analytics.',
+    'autopay': 'In Autopay tab, add a new recurring payment with merchant name, amount, currency, start date, and status. Pause/resume or delete as needed. Total monthly recurring is shown at the top.',
+    'saved sites': 'Track sites with saved cards in Saved Sites. Add a site, mark as "Card Saved" or "Removed", and use built-in guides to remove cards from merchants like Amazon or Netflix.',
+    'change password': 'In Settings > Security Engine, enter your current vault key and new one (8+ chars with special). Click "UPDATE KEY" to simulate the change.',
+    'currency': 'Update preferred currency in Settings > User Identity. It affects displays across the app, including expenses and subscriptions.',
+    'analytics chart': 'Dashboard shows expense analytics. Switch between Bar, Line, or Doughnut charts to visualize spending by category.',
+    'logout': 'Click "LOGOUT SESSION" at the bottom of the sidebar to clear your session and reload.',
+    'default': 'I can only help with GhostVault Pro features. For other questions, check the tabs or contact support@ghostvault.pro. What app-specific doubt do you have?'
+};
+
+function toggleChatbot() {
+    const modal = document.getElementById('chatbotModal');
+    modal.classList.toggle('hidden');
+}
+
+document.getElementById('chatbotToggle').addEventListener('click', toggleChatbot);
+
+function sendMessage() {
+    const input = document.getElementById('chatbotInput');
+    const message = input.value.trim().toLowerCase();
+    if (!message) return;
+
+    addMessage(message, 'user');
+    input.value = '';
+
+    // Simple keyword matching for responses
+    let response = faqs['default'];
+    for (let key in faqs) {
+        if (message.includes(key.split(' ')[0]) || message.includes(key.split(' ')[1])) {
+            response = faqs[key];
+            break;
+        }
+    }
+
+    setTimeout(() => addMessage(response, 'bot'), 500);
+}
+
+function addMessage(text, sender) {
+    const messages = document.getElementById('chatbotMessages');
+    const div = document.createElement('div');
+    div.className = `message ${sender}`;
+    div.innerHTML = `<div class="message-bubble">${text}</div>`;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+}
+
+function handleKeyPress(event) {
+    if (event.key === 'Enter') sendMessage();
+}
+
+lucide.createIcons(); // Re-init icons for chatbot
+</script>
+
+</body>
+</html>
