@@ -1,0 +1,4 @@
+First step (Type this): BASH in terminal  : --> npm install -g http-server
+
+Second step : BASH in terminal : ----> http-server
+
