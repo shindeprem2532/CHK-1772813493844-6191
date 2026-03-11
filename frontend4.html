@@ -1,0 +1,450 @@
+
+        function toggleAutopayStatus(idx) {
+
+            let accs = JSON.parse(localStorage.getItem('gv_pro_v3'));
+
+            let entry = accs[currentSession].autopay[idx];
+
+            entry.status = entry.status === 'active' ? 'paused' : 'active';
+
+            localStorage.setItem('gv_pro_v3', JSON.stringify(accs));
+
+            renderAutopay();
+
+        }
+
+        function deleteAutopay(idx) {
+
+            if (!confirm("Delete this recurring payment?")) return;
+
+            let accs = JSON.parse(localStorage.getItem('gv_pro_v3'));
+
+            accs[currentSession].autopay.splice(idx, 1);
+
+            localStorage.setItem('gv_pro_v3', JSON.stringify(accs));
+
+            renderAutopay();
+
+        }
+
+        function renderAutopay() {
+
+            const list = document.getElementById('autopayList');
+
+            if (!list) return;
+
+            let accs = JSON.parse(localStorage.getItem('gv_pro_v3'));
+
+            const items = accs?.[currentSession]?.autopay || [];
+
+            let monthlyTotal = 0;
+
+            if (items.length === 0) {
+
+                list.innerHTML = `<p style="color:var(--text-dim);text-align:center;padding:60px 0;font-size:15px;">
+
+            No recurring payments set up yet.
+
+        </p>`;
+
+            } else {
+
+                list.innerHTML = items.map((it, i) => {
+
+                    const active = it.status === 'active';
+
+                    if (active) monthlyTotal += it.amount;
+
+                    const d = new Date(it.startDate);
+
+                    const next = new Date(d); next.setMonth(next.getMonth() + 1);
+
+                    return `
+
+            <div class="card" style="margin-bottom:16px;${active ? '' : 'opacity:0.65;'}">
+
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;">
+
+                    <div style="flex:1;">
+
+                        <div style="font-weight:600;font-size:16px;">${it.name}</div>
+
+                        <div style="margin:6px 0;color:${active ? 'var(--success)' : 'var(--error)'};">
+
+                            ${it.currency}${it.amount.toFixed(2)} / month • ${it.status.toUpperCase()}
+
+                        </div>
+
+                        <div style="color:var(--text-dim);font-size:13px;">
+
+                            Started ${d.toLocaleDateString()} • Next ${next.toLocaleDateString()}
+
+                        </div>
+
+                    </div>
+
+                    <div style="display:flex;gap:10px;white-space:nowrap;">
+
+                        <button class="btn-primary" style="padding:8px 16px;font-size:13px;${active ? 'background:var(--error);' : 'background:var(--success);'}"
+
+                            onclick="toggleAutopayStatus(${i})">${active ? 'PAUSE' : 'RESUME'}</button>
+
+                        <button class="btn-danger" style="padding:8px 16px;font-size:13px;" onclick="deleteAutopay(${i})">DELETE</button>
+
+                    </div>
+
+                </div>
+
+            </div>`;
+
+                }).join('');
+
+            }
+
+            document.getElementById('autopayMonthlyTotal').textContent = `${selectedCurrency}${monthlyTotal.toFixed(2)}`;
+
+        }
+
+        // ────────────────────────────────────────────────
+
+        // SAVED SITES FUNCTIONS
+
+        // ────────────────────────────────────────────────
+
+        function addSite() {
+
+            const name = document.getElementById('siteName').value.trim();
+
+            const url = document.getElementById('siteUrl').value.trim();
+
+            const status = document.getElementById('siteStatus').value;
+
+            if (!name) return alert("Site name is required.");
+
+            let accs = JSON.parse(localStorage.getItem('gv_pro_v3'));
+
+            accs[currentSession].sites = accs[currentSession].sites || [];
+
+            accs[currentSession].sites.push({ name, url, status, added: new Date().toISOString() });
+
+            localStorage.setItem('gv_pro_v3', JSON.stringify(accs));
+
+            document.getElementById('siteName').value = '';
+
+            document.getElementById('siteUrl').value = '';
+
+            document.getElementById('addSiteModal').classList.add('hidden');
+
+            renderSites();
+
+            alert("Site added.");
+
+        }
+
+        function toggleSiteStatus(idx) {
+
+            let accs = JSON.parse(localStorage.getItem('gv_pro_v3'));
+
+            let entry = accs[currentSession].sites[idx];
+
+            entry.status = entry.status === 'active' ? 'removed' : 'active';
+
+            localStorage.setItem('gv_pro_v3', JSON.stringify(accs));
+
+            renderSites();
+
+        }
+
+        function deleteSite(idx) {
+
+            if (!confirm("Delete this site entry?")) return;
+
+            let accs = JSON.parse(localStorage.getItem('gv_pro_v3'));
+
+            accs[currentSession].sites.splice(idx, 1);
+
+            localStorage.setItem('gv_pro_v3', JSON.stringify(accs));
+
+            renderSites();
+
+        }
+
+        function renderSites() {
+
+            const list = document.getElementById('sitesList');
+
+            if (!list) return;
+
+            let accs = JSON.parse(localStorage.getItem('gv_pro_v3'));
+
+            const items = accs?.[currentSession]?.sites || [];
+
+            if (items.length === 0) {
+
+                list.innerHTML = `<p style="color:var(--text-dim);text-align:center;padding:60px 0;font-size:15px;">
+
+            No sites tracked yet. Add sites where your card is saved.
+
+        </p>`;
+
+            } else {
+
+                list.innerHTML = items.map((it, i) => {
+
+                    const active = it.status === 'active';
+
+                    const guide = removalGuides[it.name] || { steps: 'No specific guide available. Visit site settings.', link: it.url || '' };
+
+                    return `
+
+            <div class="card" style="margin-bottom:16px;${active ? '' : 'opacity:0.65;'}">
+
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;">
+
+                    <div style="flex:1;">
+
+                        <div style="font-weight:600;font-size:16px;">${it.name}</div>
+
+                        <div style="margin:6px 0;color:${active ? 'var(--error)' : 'var(--success)'};">
+
+                            Status: ${it.status.toUpperCase()}
+
+                        </div>
+
+                        <div style="color:var(--text-dim);font-size:13px;white-space:pre-line;">
+
+                            Removal Guide: ${guide.steps}
+
+                        </div>
+
+                        ${guide.link ? `<a href="${guide.link}" target="_blank" style="color:var(--primary);font-size:13px;">Go to Site</a>` : ''}
+
+                    </div>
+
+                    <div style="display:flex;gap:10px;white-space:nowrap;">
+
+                        <button class="btn-primary" style="padding:8px 16px;font-size:13px;${active ? 'background:var(--success);' : 'background:var(--error);'}"
+
+                            onclick="toggleSiteStatus(${i})">${active ? 'MARK REMOVED' : 'MARK ACTIVE'}</button>
+
+                        <button class="btn-danger" style="padding:8px 16px;font-size:13px;" onclick="deleteSite(${i})">DELETE</button>
+
+                    </div>
+
+                </div>
+
+            </div>`;
+
+                }).join('');
+
+            }
+
+            lucide.createIcons();
+
+        }
+
+        function renderAll() {
+
+            const user = JSON.parse(localStorage.getItem('gv_pro_v3'))[currentSession];
+
+            if (!user) return;
+
+            let total = 0;
+
+            document.getElementById('historyList').innerHTML = user.data?.map(d => {
+
+                total += d.amt;
+
+                return `<div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);">
+
+            <span>${d.name} <small style="color:var(--primary)">[${d.cat}]</small></span>
+
+            <span style="color:var(--success)">${selectedCurrency}${d.amt.toFixed(2)}</span>
+
+        </div>`;
+
+            }).join('') || '<p style="color:var(--text-dim);text-align:center;padding:30px 0;">No recent activity</p>';
+
+            document.getElementById('totalSpend').innerText = `${selectedCurrency}${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+
+            document.getElementById('cardList').innerHTML = (user.cards || []).map((c, i) => `
+
+        <div class="credit-card-ui">
+
+            <div class="remove-card-trigger" onclick="removeCard(${i})"><i data-lucide="trash-2" size="14"></i></div>
+
+            <div class="card-logo-img">${cardLogos[c.type] || ''}</div>
+
+            <div>
+
+                <div style="font-weight:bold;color:var(--primary);font-size:11px;letter-spacing:1px;margin-bottom:6px;">${c.type.toUpperCase()} ${c.nature}</div>
+
+                <div style="font-size:20px;letter-spacing:3px;">**** **** **** ${c.num}</div>
+
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;">
+
+                <div>
+
+                    <div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;">Holder</div>
+
+                    <div style="font-size:14px;">${c.name}</div>
+
+                </div>
+
+                <div style="text-align:right">
+
+                    <div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;">Expires</div>
+
+                    <div style="font-size:14px;">${c.expiry}</div>
+
+                </div>
+
+                <div style="text-align:right">
+
+                    <div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;">CVV</div>
+
+                    <div style="font-size:14px;">${c.cvv}</div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    `).join('');
+
+            lucide.createIcons();
+
+        }
+
+        function changeChartType(type, btn) {
+
+            activeChartType = type;
+
+            document.querySelectorAll('.chart-tab').forEach(b => b.classList.remove('active'));
+
+            btn.classList.add('active');
+
+            updateChart();
+
+        }
+
+        function updateChart() {
+
+            const user = JSON.parse(localStorage.getItem('gv_pro_v3'))[currentSession];
+
+            if (!user?.data?.length) return;
+
+            const totals = {};
+
+            user.data.forEach(e => {
+
+                totals[e.cat] = (totals[e.cat] || 0) + e.amt;
+
+            });
+
+            const labels = Object.keys(totals);
+
+            const data = Object.values(totals);
+
+            const colors = ['#ffab40', '#3ea6ff', '#ff4e4e', '#bb86fc', '#00e676', '#4fc3f7'];
+
+            const ctx = document.getElementById('expenseChart').getContext('2d');
+
+            if (myChart) myChart.destroy();
+
+            myChart = new Chart(ctx, {
+
+                type: activeChartType,
+
+                data: {
+
+                    labels,
+
+                    datasets: [{
+
+                        label: 'Amount',
+
+                        data,
+
+                        backgroundColor: activeChartType === 'doughnut' ? colors : 'rgba(62,166,255,0.18)',
+
+                        borderColor: activeChartType === 'doughnut' ? '#0f0f0f' : '#3ea6ff',
+
+                        borderWidth: 2,
+
+                        fill: activeChartType !== 'doughnut'
+
+                    }]
+
+                },
+
+                options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio: false,
+
+                    animation: { duration: 1400, easing: 'easeOutQuart' },
+
+                    plugins: {
+
+                        legend: { display: activeChartType === 'doughnut', labels: { color: '#ddd' } }
+
+                    },
+
+                    scales: activeChartType !== 'doughnut' ? {
+
+                        y: { grid: { color: '#222' }, ticks: { color: '#888' } },
+
+                        x: { grid: { display: false }, ticks: { color: '#888' } }
+
+                    } : {}
+
+                }
+
+            });
+
+        }
+
+        function switchTab(id) {
+
+            document.querySelectorAll('.tab-view, #category-page').forEach(t => t.classList.add('hidden'));
+
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+
+            const link = [...document.querySelectorAll('.nav-link')].find(l => l.textContent.toLowerCase().includes(id));
+
+            if (link) link.classList.add('active');
+
+            const tab = document.getElementById('tab-' + id);
+
+            if (tab) {
+
+                tab.classList.remove('hidden');
+
+                document.getElementById('viewTitle').innerText = id.toUpperCase();
+
+                if (id === 'subscription') renderSubscriptionTiers();
+
+                if (id === 'home') updateChart();
+
+                if (id === 'autopay') renderAutopay();
+
+                if (id === 'sites') renderSites();
+
+            }
+
+        }
+
+        generateCaptcha();
+
+        lucide.createIcons();
+
+    </script>
+
+</body>
+
+</html>
