@@ -1,0 +1,501 @@
+  .credit-card-ui {
+
+            background: linear-gradient(135deg, #222, #000);
+            padding: 25px;
+
+            border-radius: 18px;
+            border: 1px solid #333;
+            position: relative;
+
+            margin-bottom: 15px;
+            min-height: 180px;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+
+        }
+
+        .card-logo-img {
+            height: 25px;
+            width: auto;
+            position: absolute;
+            top: 25px;
+            right: 25px;
+        }
+
+        .remove-card-trigger {
+
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            color: var(--text-dim);
+
+            cursor: pointer;
+            opacity: 0.4;
+            padding: 5px;
+            border-radius: 50%;
+
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+        }
+
+        .remove-card-trigger:hover {
+
+            opacity: 1;
+            color: var(--error);
+            background: rgba(255, 78, 78, 0.1);
+
+            transform: scale(1.1);
+
+        }
+
+        .sub-grid {
+
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+
+        }
+
+        .sub-card {
+
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 30px;
+
+            border-radius: 20px;
+            width: 280px;
+            text-align: center;
+            position: relative;
+
+            cursor: default;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+        }
+
+        .sub-card:hover {
+
+            transform: translateY(-12px);
+            border-color: var(--primary);
+
+            box-shadow: 0 15px 40px rgba(62, 166, 255, 0.15);
+
+        }
+
+        .sub-card.popular {
+            border: 2px solid var(--accent);
+        }
+
+        .sub-tag {
+
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+
+            background: var(--accent);
+            color: #000;
+            font-size: 10px;
+            font-weight: 800;
+
+            padding: 4px 12px;
+            border-radius: 20px;
+
+        }
+
+        .sub-price {
+            font-size: 32px;
+            font-weight: 800;
+            margin: 15px 0;
+        }
+
+        .sub-feature {
+
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+
+            color: var(--text-dim);
+            margin-bottom: 10px;
+            text-align: left;
+
+        }
+
+        .payment-modal {
+
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 5000;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            animation: fadeIn 0.3s ease;
+
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .pfp-container {
+
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 2px dashed var(--border);
+
+            margin: 10px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            overflow: hidden;
+            cursor: pointer;
+            background: #000;
+            position: relative;
+
+        }
+
+        .pfp-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .dash-avatar {
+
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+
+            border: 1px solid var(--primary);
+
+        }
+
+        .category-page {
+            padding: 30px;
+            animation: superFade 0.4s ease;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .chart-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .chart-tab {
+
+            background: var(--border);
+            border: none;
+            color: var(--text-dim);
+
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+
+            cursor: pointer;
+            transition: 0.3s;
+
+        }
+
+        .chart-tab.active {
+
+            background: var(--primary);
+            color: #000;
+            font-weight: bold;
+
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div id="paymentGateway" class="payment-modal hidden">
+
+        <div id="paymentStatus" style="text-align:center;">
+
+            <i data-lucide="shield-check" style="width:60px;height:60px;color:var(--primary);margin-bottom:20px;"></i>
+
+            <h2 id="payMsg">Initializing Secure Gateway...</h2>
+
+            <div
+                style="width:200px;height:4px;background:var(--border);margin:20px auto;border-radius:10px;overflow:hidden;">
+
+                <div id="payProgress"
+                    style="width:0%;height:100%;background:var(--primary);transition:width 1.5s ease;"></div>
+
+            </div>
+
+            <p style="color:var(--text-dim);font-size:12px;">GhostVault Encryption Active</p>
+
+        </div>
+
+    </div>
+
+    <div id="welcomeOverlay" class="hidden"></div>
+
+    <div id="authWrapper">
+
+        <div class="auth-card">
+
+            <h2 style="color:var(--primary);margin:0;">GHOSTVAULT PRO</h2>
+
+            <p style="color:var(--text-dim);margin-bottom:25px;">Secure Ledger Initialization</p>
+
+            <input type="email" id="authEmail" placeholder="Authentic Email (e.g. user@gmail.com)">
+
+            <div class="pass-group">
+
+                <input type="password" id="authPass" placeholder="Vault Key (8+ Chars & Special)">
+
+                <i data-lucide="eye" class="pass-toggle" onclick="togglePass('authPass')"></i>
+
+            </div>
+
+            <div class="pass-group">
+
+                <input type="password" id="authPassConfirm" placeholder="Confirm Vault Key">
+
+                <i data-lucide="eye" class="pass-toggle" onclick="togglePass('authPassConfirm')"></i>
+
+            </div>
+
+            <div class="captcha-box" id="captchaText"
+                style="background:#000;padding:15px;margin:15px 0;letter-spacing:8px;color:var(--accent);font-weight:bold;text-align:center;">
+
+                ----
+
+            </div>
+
+            <input type="text" id="captchaInput" placeholder="Enter Captcha">
+
+            <button onclick="processAuth()" class="btn-primary" style="margin-top:15px;">INITIALIZE SESSION</button>
+
+            <p onclick="alert('Contact support@ghostvault.pro')"
+                style="color:var(--text-dim);font-size:12px;text-align:center;cursor:pointer;margin-top:15px;">
+
+                Forgot Vault Key?
+
+            </p>
+
+        </div>
+
+    </div>
+
+    <div class="sidebar">
+
+        <div style="padding:30px 25px;font-size:20px;font-weight:900;color:var(--primary);">
+
+            <i data-lucide="shield-check"></i> GV PRO
+
+        </div>
+
+        <div class="nav-link active" onclick="switchTab('home')"><i data-lucide="layout"></i> Dashboard</div>
+
+        <div class="nav-link" onclick="switchTab('subscription')"><i data-lucide="zap"></i> Subscription</div>
+
+        <div class="nav-link" onclick="switchTab('explore')"><i data-lucide="compass"></i> Explore</div>
+
+        <div class="nav-link" onclick="switchTab('autopay')"><i data-lucide="repeat"></i> Autopay</div>
+
+        <div class="nav-link" onclick="switchTab('sites')"><i data-lucide="globe"></i> Saved Sites</div>
+
+        <div class="nav-link" onclick="switchTab('cards')"><i data-lucide="credit-card"></i> Card Vault</div>
+
+        <div class="nav-link" onclick="switchTab('settings')"><i data-lucide="user-cog"></i> Settings</div>
+
+        <div style="margin-top:auto;padding:25px;">
+
+            <button onclick="location.reload()" class="btn-danger" style="width:100%">LOGOUT SESSION</button>
+
+        </div>
+
+    </div>
+
+    <div class="main-content">
+
+        <div class="top-bar">
+
+            <div id="viewTitle" style="font-weight:800;letter-spacing:1px;">DASHBOARD</div>
+
+            <div style="display:flex;align-items:center;gap:15px;">
+
+                <span id="subBadge"
+                    style="background:var(--accent);color:#000;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:bold;display:none;">FREE</span>
+
+                <span id="currencyDisplay" style="color:var(--accent);font-weight:bold;">$</span>
+
+                <img id="userAvatarHeader" class="dash-avatar hidden" src="">
+
+                <div id="userBadge" style="font-size:12px;color:var(--primary);">UNAUTHORIZED</div>
+
+            </div>
+
+        </div>
+
+        <div id="tab-home" class="tab-view">
+
+            <div class="grid-container">
+
+                <div class="card"
+                    style="grid-column:span 2;position:relative;overflow:hidden;background:linear-gradient(145deg,#1a1a1a,#0d0d0d);">
+
+                    <div
+                        style="position:absolute;top:-50px;right:-20px;width:150px;height:150px;background:var(--primary);opacity:0.1;filter:blur(50px);border-radius:50%;pointer-events:none;">
+                    </div>
+
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+
+                        <div>
+
+                            <p
+                                style="color:var(--text-dim);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;display:flex;align-items:center;gap:8px;">
+
+                                <i data-lucide="wallet" size="16"></i> Available Liquidity
+
+                            </p>
+
+                            <h1 id="totalSpend"
+                                style="font-size:54px;margin:0;background:linear-gradient(to right,#fff,var(--primary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+
+                                $0.00
+
+                            </h1>
+
+                        </div>
+
+                        <button class="btn-primary"
+                            style="width:auto;padding:10px 20px;border-radius:8px;font-size:13px;display:flex;align-items:center;gap:8px;"
+                            onclick="switchTab('explore')">
+
+                            <i data-lucide="plus" size="16"></i> Add Funds
+
+                        </button>
+
+                    </div>
+
+                    <div
+                        style="margin-top:30px;background:rgba(0,0,0,0.2);border-radius:12px;padding:15px;border:1px solid var(--border);">
+
+                        <div
+                            style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:10px;">
+
+                            <h3 style="margin:0;font-size:14px;color:var(--text-dim);">Recent Activity</h3>
+
+                        </div>
+
+                        <div id="historyList"></div>
+
+                    </div>
+
+                </div>
+
+                <div class="card" style="grid-column:span 2;">
+
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+
+                        <h3 style="margin:0;">Expense Analytics</h3>
+
+                        <div class="chart-tabs">
+
+                            <button class="chart-tab active" onclick="changeChartType('bar',this)">Bar</button>
+
+                            <button class="chart-tab" onclick="changeChartType('line',this)">Line</button>
+
+                            <button class="chart-tab" onclick="changeChartType('doughnut',this)">Doughnut</button>
+
+                        </div>
+
+                    </div>
+
+                    <div class="chart-container">
+
+                        <canvas id="expenseChart"></canvas>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div id="tab-subscription" class="tab-view hidden">
+
+            <div class="category-page" id="subscriptionContent"></div>
+
+        </div>
+
+        <div id="tab-settings" class="tab-view hidden">
+
+            <div class="grid-container">
+
+                <div class="card">
+
+                    <h3>User Identity</h3>
+
+                    <div class="pfp-container" onclick="document.getElementById('pfpInput').click()">
+
+                        <img id="pfpPreview" src="" class="hidden">
+
+                        <i data-lucide="upload-cloud" id="pfpIcon"></i>
+
+                    </div>
+
+                    <input type="file" id="pfpInput" class="hidden" accept="image/*" onchange="previewImage(this)">
+
+                    <input type="text" id="setPhone" placeholder="Contact Number">
+
+                    <input type="email" id="setEmail" placeholder="Update Email ID">
+
+                    <p style="margin-top:15px;color:var(--primary);font-size:12px;">Preferred Currency</p>
+
+                    <select id="setCurrency" onchange="updateCurrency()">
+
+                        <option value="$">USD - US Dollar ($)</option>
+
+                        <option value="₹">INR - Indian Rupee (₹)</option>
+
+                        <option value="£">GBP - British Pound (£)</option>
+
+                        <option value="€">EUR - Euro (€)</option>
+
+                        <option value="¥">JPY - Japanese Yen (¥)</option>
+
+                        <option value="₿">BTC - Bitcoin (₿)</option>
+
+                    </select>
+
+                    <button class="btn-primary" onclick="saveProfile()">SAVE IDENTITY</button>
+
+                </div>
