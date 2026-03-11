@@ -1,0 +1,770 @@
+
+                <div class="card">
+
+                    <h3>Security Engine</h3>
+
+                    <input type="password" id="setOldPass" placeholder="Current Vault Key">
+
+                    <input type="password" id="setNewPass" placeholder="New Vault Key">
+
+                    <button class="btn-primary" onclick="alert('Password change simulation – key updated.')"
+                        style="background:var(--accent)">UPDATE KEY</button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div id="tab-explore" class="tab-view hidden">
+
+            <div class="grid-container" id="categoryGrid"></div>
+
+        </div>
+
+        <div id="tab-autopay" class="tab-view hidden">
+
+            <div class="category-page">
+
+                <div class="grid-container">
+
+                    <div class="card" style="grid-column:span 2;">
+
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+
+                            <h2 style="margin:0;">Autopay Overview</h2>
+
+                            <div style="font-size:18px;font-weight:bold;color:var(--success);">
+
+                                Monthly Recurring: <span id="autopayMonthlyTotal">${selectedCurrency}0.00</span>
+
+                            </div>
+
+                        </div>
+
+                        <div id="autopayList" style="min-height:120px;"></div>
+
+                    </div>
+
+                    <div class="card">
+
+                        <h3>Add New Recurring Payment</h3>
+
+                        <input type="text" id="autopayName"
+                            placeholder="Service / Merchant (Netflix, Spotify, Gym, etc.)">
+
+                        <input type="number" id="autopayAmount" placeholder="Monthly Amount" step="0.01">
+
+                        <select id="autopayCurrency">
+
+                            <option value="$">USD ($)</option>
+
+                            <option value="₹">INR (₹)</option>
+
+                            <option value="€">EUR (€)</option>
+
+                            <option value="£">GBP (£)</option>
+
+                        </select>
+
+                        <input type="date" id="autopayStartDate">
+
+                        <select id="autopayStatus">
+
+                            <option value="active">Active</option>
+
+                            <option value="paused">Paused</option>
+
+                        </select>
+
+                        <button onclick="addAutopay()" class="btn-primary" style="margin-top:15px;">ADD AUTOPAY</button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div id="tab-sites" class="tab-view hidden">
+
+            <div class="category-page">
+
+                <div class="grid-container">
+
+                    <div class="card" style="grid-column:span 2;">
+
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+
+                            <h2 style="margin:0;">Saved Sites Manager</h2>
+
+                            <button class="btn-primary" style="width:auto;padding:8px 16px;"
+                                onclick="document.getElementById('addSiteModal').classList.remove('hidden')">Add
+                                Site</button>
+
+                        </div>
+
+                        <p style="color:var(--text-dim);margin-bottom:20px;">Track websites where your card is saved and
+                            get guides to remove them.</p>
+
+                        <div id="sitesList" style="min-height:120px;"></div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div id="addSiteModal" class="payment-modal hidden" style="z-index:6000;">
+
+                <div class="auth-card" style="max-width:400px;">
+
+                    <h3>Add Site with Saved Card</h3>
+
+                    <input type="text" id="siteName" placeholder="Site Name (e.g. Amazon)">
+
+                    <input type="text" id="siteUrl" placeholder="Site URL (optional)">
+
+                    <select id="siteStatus">
+
+                        <option value="active">Card Saved</option>
+
+                        <option value="removed">Removed</option>
+
+                    </select>
+
+                    <button onclick="addSite()" class="btn-primary" style="margin-top:15px;">ADD SITE</button>
+
+                    <button class="btn-danger" style="margin-top:10px;width:100%;background:none;border:none;"
+                        onclick="document.getElementById('addSiteModal').classList.add('hidden')">Cancel</button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div id="tab-cards" class="tab-view hidden">
+
+            <div class="grid-container">
+
+                <div class="card" style="grid-column:span 2;">
+
+                    <h3>Managed Cards</h3>
+
+                    <div id="cardList" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;"></div>
+
+                </div>
+
+                <div class="card">
+
+                    <h3>Register Asset</h3>
+
+                    <input type="text" id="cardHolder" placeholder="Holder Name">
+
+                    <input type="text" id="cardNumber" placeholder="16 Digit Number" maxlength="16">
+
+                    <select id="cardNature">
+
+                        <option>Credit Card</option>
+
+                        <option>Debit Card</option>
+
+                    </select>
+
+                    <div style="display:flex;gap:10px;">
+
+                        <input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5">
+
+                        <input type="password" id="cardCVV" placeholder="CVV" maxlength="3">
+
+                    </div>
+
+                    <select id="cardType">
+
+                        <option value="Visa">Visa Elite</option>
+
+                        <option value="Mastercard">Mastercard</option>
+
+                        <option value="Amex">American Express</option>
+
+                        <option value="RuPay">RuPay</option>
+
+                        <option value="Crypto">Crypto Cold Card</option>
+
+                    </select>
+
+                    <button onclick="addCard()" class="btn-primary">SECURE ADD</button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div id="category-page" class="hidden">
+
+            <div class="category-page" id="catPageContent"></div>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        let currentSession = null;
+
+        let captchaCode = "";
+
+        let selectedCurrency = "$";
+
+        let myChart = null;
+
+        let activeChartType = 'bar';
+
+        const categories = {
+
+            'Food': { icon: 'coffee', color: '#ffab40', detail: 'Track meals and dining.' },
+
+            'Travel': { icon: 'plane', color: '#3ea6ff', detail: 'Log trips and transit.' },
+
+            'Health': { icon: 'activity', color: '#ff4e4e', detail: 'Medical and wellness costs.' },
+
+            'Tech': { icon: 'cpu', color: '#bb86fc', detail: 'Gear and subscriptions.' },
+
+            'Autopay': { icon: 'repeat', color: '#00e676', detail: 'Recurring payments & subscriptions.' }
+
+        };
+
+        const cardLogos = {
+
+            'Visa': `<svg viewBox="0 0 48 48" width="40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18.8 31.4l2.5-14.8h4l-2.5 14.8h-4zm15.4-14.4c-.8-.3-2.1-.6-3.7-.6-4.1 0-7 2.2-7 5.3 0 2.3 2 3.6 3.6 4.3 1.6.8 2.2 1.3 2.1 2-.1 1.1-1.3 1.6-2.5 1.6-1.7 0-2.6-.3-4-.9l-.6-.3-.6 3.8c1 .5 2.9.9 4.8.9 4.4 0 7.2-2.2 7.3-5.5.1-1.8-1.1-3.2-3.6-4.4-1.5-.8-2.4-1.3-2.4-2.1 0-.7.8-1.5 2.5-1.5.9 0 1.6.2 2.5.5l.3.1.7-3.8zM44 16.6h-3.1c-1 0-1.7.3-2.1 1.3l-5.9 13.5h4.2l.8-2.3h5.2l.5 2.3H48l-4-14.8zm-4.3 8.3l1.8-4.9.9 4.9h-2.7zM11.7 16.6H7.5L3 27.2c-.4 1.1-.5 1.5-.5 1.5L7.2 18.2c.4-1.1 1.2-1.6 2.1-1.6h6.7l-4.3 14.8h4.3l6.7-14.8z" fill="#fff"/></svg>`,
+
+            'Mastercard': `<svg viewBox="0 0 48 48" width="40" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="24" r="12" fill="#eb001b"/><circle cx="30" cy="24" r="12" fill="#ff5f00"/><path d="M24 13.5c-2.9 2.5-4.7 6.2-4.7 10.5s1.8 8 4.7 10.5c2.9-2.5 4.7-6.2 4.7-10.5s-1.8-8-4.7-10.5z" fill="#ff5f00"/></svg>`,
+
+            'Amex': `<svg viewBox="0 0 48 48" width="40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="48" rx="4" fill="#007bc1"/><path d="M12.4 28.5l-1.1-2.9H6.7l-1.1 2.9H3.1l4.8-12.2h2.5l4.8 12.2h-2.8zm-4.7-5.1h2.7L9 20l-1.3 3.4zm18.3 5.1V16.3h2.3l2.8 5 2.8-5h2.3v12.2h-2.3v-7.3l-2.8 4.8h-.2l-2.8-4.8v7.3h-2.3zm15.7 0V16.3h6.6v2.1h-4.3v2.8h3.9v2.1h-3.9v3.1h4.4v2.1h-6.7z" fill="#fff"/></svg>`,
+
+            'RuPay': `<div style="color:white;font-weight:900;font-style:italic;font-size:14px;border-bottom:2px solid #00a1e1">RuPay <span style="color:#f26522">❯</span></div>`,
+
+            'Crypto': `<i data-lucide="cpu" color="var(--primary)"></i>`
+
+        };
+
+        const removalGuides = {
+
+            'Amazon': {
+
+                steps: '1. Go to Amazon.com and sign in.\n2. Click Your Account > Payment options.\n3. Select the card, click Delete, then Confirm delete.',
+
+                link: 'https://pay.amazon.com/help/201754700'
+
+            },
+
+            'Netflix': {
+
+                steps: '1. Go to Netflix.com and sign in.\n2. Go to Account > Manage payment info.\n3. Delete the payment method.',
+
+                link: 'https://help.netflix.com/en/node/113408'
+
+            },
+
+            'Google Pay': {
+
+                steps: '1. Go to payments.google.com.\n2. Click Payment methods.\n3. Next to the card, click Remove > Remove.',
+
+                link: 'https://support.google.com/googlepay/answer/10197016'
+
+            },
+
+            'Apple Pay': {
+
+                steps: '1. Open Wallet app on iPhone.\n2. Tap the card > More > Card Details > Remove Card.',
+
+                link: 'https://support.apple.com/en-us/118219'
+
+            },
+
+            'PayPal': {
+
+                steps: '1. Go to PayPal.com and log in.\n2. Go to Wallet.\n3. Click the card > Remove card.',
+
+                link: 'https://www.paypal.com/us/cshelp/article/how-do-i-remove-a-debit-or-credit-card-from-my-paypal-account-help158'
+
+            },
+
+            'Uber': {
+
+                steps: '1. Open Uber app.\n2. Go to Menu > Payments.\n3. Tap the payment method > Settings > Delete.',
+
+                link: 'https://help.uber.com/riders/article/deleting-a-payment-method'
+
+            },
+
+            'Spotify': {
+
+                steps: '1. Go to Spotify.com/account.\n2. Go to Saved Payment Cards.\n3. Click the card > Remove Saved Card.',
+
+                link: 'https://support.spotify.com/us/article/change-payment-details'
+
+            },
+
+            'eBay': {
+
+                steps: '1. Go to eBay.com and log in.\n2. Go to Account > Payments.\n3. Find the card and click Remove.',
+
+                link: 'https://www.ebay.com/help/account/payment-methods/removing-payment-method?id=4110'
+
+            }
+
+            // Add more sites as needed
+
+        };
+
+        function togglePass(id) {
+
+            const input = document.getElementById(id);
+
+            input.type = input.type === 'password' ? 'text' : 'password';
+
+        }
+
+        function generateCaptcha() {
+
+            captchaCode = Math.random().toString(36).substring(2, 7).toUpperCase();
+
+            document.getElementById('captchaText').innerText = captchaCode;
+
+        }
+
+        function processAuth() {
+
+            const email = document.getElementById('authEmail').value.trim();
+
+            const p1 = document.getElementById('authPass').value;
+
+            const p2 = document.getElementById('authPassConfirm').value;
+
+            const cap = document.getElementById('captchaInput').value.toUpperCase();
+
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert("Enter valid email.");
+
+            if (p1 !== p2) return alert("Keys do not match.");
+
+            if (p1.length < 8 || !/[!@#$%^&*(),.?":{}|<>]/.test(p1)) return alert("8+ Chars & 1 Special Character required.");
+
+            if (cap !== captchaCode) { alert("Captcha Error"); generateCaptcha(); return; }
+
+            let accounts = JSON.parse(localStorage.getItem('gv_pro_v3') || '{}');
+
+            if (!accounts[email]) {
+
+                accounts[email] = {
+
+                    data: [],
+
+                    cards: [],
+
+                    autopay: [],
+
+                    sites: [],
+
+                    profile: { phone: '', pfp: '', currency: '$', subscription: 'FREE' },
+
+                    pass: p1
+
+                };
+
+            } else if (accounts[email].pass !== p1) {
+
+                return alert("Incorrect Vault Key.");
+
+            }
+
+            localStorage.setItem('gv_pro_v3', JSON.stringify(accounts));
+
+            currentSession = email;
+
+            showWelcome();
+
+        }
+
+        function showWelcome() {
+
+            const over = document.getElementById('welcomeOverlay');
+
+            over.classList.remove('hidden');
+
+            over.innerHTML = `<div class="welcome-anim">ACCESS GRANTED</div>`;
+
+            setTimeout(() => {
+
+                over.classList.add('hidden');
+
+                document.getElementById('authWrapper').classList.add('hidden');
+
+                initUI();
+
+            }, 1800);
+
+        }
+
+        function initUI() {
+
+            const user = JSON.parse(localStorage.getItem('gv_pro_v3'))[currentSession];
+
+            document.getElementById('userBadge').innerText = currentSession;
+
+            selectedCurrency = user.profile.currency || "$";
+
+            document.getElementById('setCurrency').value = selectedCurrency;
+
+            document.getElementById('currencyDisplay').innerText = selectedCurrency;
+
+            document.getElementById('setEmail').value = currentSession;
+
+            document.getElementById('setPhone').value = user.profile.phone || '';
+
+            if (user.profile.pfp) updateAvatarUI(user.profile.pfp);
+
+            const sub = user.profile.subscription || 'FREE';
+
+            const badge = document.getElementById('subBadge');
+
+            badge.innerText = sub.toUpperCase();
+
+            badge.style.display = 'inline-block';
+
+            renderAll();
+
+            renderExplore();
+
+            updateChart();
+
+            renderAutopay();
+
+            renderSites();
+
+        }
+
+        function addCard() {
+
+            const name = document.getElementById('cardHolder').value.trim();
+
+            const num = document.getElementById('cardNumber').value.trim();
+
+            const nature = document.getElementById('cardNature').value;
+
+            const expiry = document.getElementById('cardExpiry').value.trim();
+
+            const cvv = document.getElementById('cardCVV').value.trim();
+
+            const type = document.getElementById('cardType').value;
+
+            if (!name || num.length < 13 || !/^\d{2}\/\d{2}$/.test(expiry) || cvv.length !== 3) {
+
+                return alert("Invalid card details.");
+
+            }
+
+            let accs = JSON.parse(localStorage.getItem('gv_pro_v3'));
+
+            accs[currentSession].cards.push({ name, num: num.slice(-4), nature, expiry, cvv: '***', type });
+
+            localStorage.setItem('gv_pro_v3', JSON.stringify(accs));
+
+            alert("Card securely added to vault.");
+
+            renderAll();
+
+        }
+
+        function removeCard(index) {
+
+            if (!confirm("Remove this card permanently?")) return;
+
+            let accs = JSON.parse(localStorage.getItem('gv_pro_v3'));
+
+            accs[currentSession].cards.splice(index, 1);
+
+            localStorage.setItem('gv_pro_v3', JSON.stringify(accs));
+
+            renderAll();
+
+        }
+
+        function updateCurrency() {
+
+            selectedCurrency = document.getElementById('setCurrency').value;
+
+            document.getElementById('currencyDisplay').innerText = selectedCurrency;
+
+            renderAll();
+
+            renderAutopay();
+
+            renderSites();
+
+        }
+
+        function previewImage(input) {
+
+            if (input.files?.[0]) {
+
+                const reader = new FileReader();
+
+                reader.onload = e => updateAvatarUI(e.target.result);
+
+                reader.readAsDataURL(input.files[0]);
+
+            }
+
+        }
+
+        function updateAvatarUI(src) {
+
+            document.getElementById('pfpPreview').src = src; document.getElementById('pfpPreview').classList.remove('hidden');
+
+            document.getElementById('userAvatarHeader').src = src; document.getElementById('userAvatarHeader').classList.remove('hidden');
+
+            document.getElementById('pfpIcon').classList.add('hidden');
+
+        }
+
+        function saveProfile() {
+
+            let accs = JSON.parse(localStorage.getItem('gv_pro_v3'));
+
+            accs[currentSession].profile.phone = document.getElementById('setPhone').value.trim();
+
+            accs[currentSession].profile.pfp = document.getElementById('pfpPreview').src;
+
+            accs[currentSession].profile.currency = selectedCurrency;
+
+            localStorage.setItem('gv_pro_v3', JSON.stringify(accs));
+
+            alert("Profile updated.");
+
+        }
+
+        function renderExplore() {
+
+            document.getElementById('categoryGrid').innerHTML = Object.keys(categories).map(k => `
+
+        <div class="card">
+
+            <i data-lucide="${categories[k].icon}" style="color:${categories[k].color}"></i>
+
+            <h3>${k}</h3>
+
+            <p style="font-size:12px;color:var(--text-dim)">${categories[k].detail}</p>
+
+            <button onclick="openSubCategory('${k}')" class="btn-primary" style="padding:8px 0">OPEN LEDGER</button>
+
+        </div>
+
+    `).join('');
+
+            lucide.createIcons();
+
+        }
+
+        function openSubCategory(cat) {
+
+            document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
+
+            document.getElementById('category-page').classList.remove('hidden');
+
+            document.getElementById('viewTitle').innerText = cat.toUpperCase();
+
+            const c = categories[cat];
+
+            document.getElementById('catPageContent').innerHTML = `
+
+        <div class="card" style="max-width:520px;margin:0 auto;">
+
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+
+                <i data-lucide="${c.icon}" style="color:${c.color}"></i>
+
+                <h2 style="margin:0;">${cat} Ledger</h2>
+
+            </div>
+
+            <label style="font-size:12px;color:var(--text-dim)">Description</label>
+
+            <input type="text" id="subExpName" placeholder="e.g. Dinner, Taxi, Netflix">
+
+            <label style="font-size:12px;color:var(--text-dim)">Amount (${selectedCurrency})</label>
+
+            <input type="number" id="subExpAmt" step="0.01" placeholder="0.00">
+
+            <button class="btn-primary" onclick="logSubExpense('${cat}')">SAVE ENTRY</button>
+
+            <button class="btn-danger" style="margin-top:12px;width:100%;background:none;border:none;" onclick="switchTab('explore')">Cancel</button>
+
+        </div>
+
+    `;
+
+            lucide.createIcons();
+
+        }
+
+        function logSubExpense(cat) {
+
+            const name = document.getElementById('subExpName').value.trim();
+
+            const amt = parseFloat(document.getElementById('subExpAmt').value);
+
+            if (!name || isNaN(amt) || amt <= 0) return alert("Please enter valid description and amount.");
+
+            let accs = JSON.parse(localStorage.getItem('gv_pro_v3'));
+
+            accs[currentSession].data.push({ name, amt, cat, date: new Date().toISOString() });
+
+            localStorage.setItem('gv_pro_v3', JSON.stringify(accs));
+
+            alert("Expense logged.");
+
+            renderAll();
+
+            updateChart();
+
+            switchTab('home');
+
+        }
+
+        function renderSubscriptionTiers() {
+
+            const user = JSON.parse(localStorage.getItem('gv_pro_v3'))[currentSession];
+
+            const plan = user.profile.subscription || 'FREE';
+
+            document.getElementById('subscriptionContent').innerHTML = `
+
+        <div style="text-align:center;margin-bottom:40px;">
+
+            <h2 style="font-size:32px;margin-bottom:8px;">Choose Your Tier</h2>
+
+            <p style="color:var(--text-dim)">Unlock more powerful vault features</p>
+
+        </div>
+
+        <div class="sub-grid">
+
+            <div class="sub-card">
+
+                <h3>Free</h3>
+
+                <div class="sub-price">${selectedCurrency}0</div>
+
+                <p style="color:var(--text-dim);margin:16px 0 24px;">Basic secure tracking</p>
+
+                <div class="sub-feature"><i data-lucide="check"></i> Local storage</div>
+
+                <div class="sub-feature"><i data-lucide="check"></i> 4 categories</div>
+
+                <div class="sub-feature" style="opacity:0.4;"><i data-lucide="x"></i> Cloud backup</div>
+
+                <button class="btn-primary" style="margin-top:24px;background:var(--border);" disabled>Current Plan</button>
+
+            </div>
+
+            <div class="sub-card popular">
+
+                <div class="sub-tag">RECOMMENDED</div>
+
+                <h3>Advance</h3>
+
+                <div class="sub-price">${selectedCurrency}9</div>
+
+                <p style="color:var(--text-dim);margin:16px 0 24px;">Pro features + cloud</p>
+
+                <div class="sub-feature"><i data-lucide="check"></i> Everything in Free</div>
+
+                <div class="sub-feature"><i data-lucide="check"></i> Encrypted cloud sync</div>
+
+                <div class="sub-feature"><i data-lucide="check"></i> CSV export</div>
+
+                <button onclick="window.open('fake-gateway.html?plan=Advance&price=9.00', '_blank', 'width=620,height=680,...')" class="btn-primary">UPGRADE NOW</button>
+
+            </div>
+
+            <div class="sub-card">
+
+                <h3>Elite</h3>
+
+                <div class="sub-price">${selectedCurrency}29</div>
+
+                <p style="color:var(--text-dim);margin:16px 0 24px;">Maximum security</p>
+
+                <div class="sub-feature"><i data-lucide="check"></i> Everything in Advance</div>
+
+                <div class="sub-feature"><i data-lucide="check"></i> Priority support</div>
+
+                <div class="sub-feature"><i data-lucide="check"></i> Unlimited devices</div>
+
+                <button onclick="window.open('fake-gateway.html?plan=Elite&price=30.00', '_blank', 'width=620,height=680,...')" class="btn-primary">UPGRADE NOW</button>
+
+            </div>
+
+        </div>
+
+    `;
+
+            lucide.createIcons();
+
+        }
+
+        // ────────────────────────────────────────────────
+
+        // AUTOPAY FUNCTIONS
+
+        // ────────────────────────────────────────────────
+
+        function addAutopay() {
+
+            const name = document.getElementById('autopayName').value.trim();
+
+            const amount = parseFloat(document.getElementById('autopayAmount').value);
+
+            const currency = document.getElementById('autopayCurrency').value;
+
+            const start = document.getElementById('autopayStartDate').value;
+
+            const status = document.getElementById('autopayStatus').value;
+
+            if (!name || isNaN(amount) || amount <= 0 || !start) {
+
+                return alert("Please complete all fields with valid values.");
+
+            }
+
+            let accs = JSON.parse(localStorage.getItem('gv_pro_v3'));
+
+            accs[currentSession].autopay = accs[currentSession].autopay || [];
+
+            accs[currentSession].autopay.push({
+
+                name, amount, currency, startDate: start,
+
+                status, added: new Date().toISOString()
+
+            });
+
+            localStorage.setItem('gv_pro_v3', JSON.stringify(accs));
+
+            // reset form
+
+            document.getElementById('autopayName').value = '';
+
+            document.getElementById('autopayAmount').value = '';
+
+            document.getElementById('autopayStartDate').value = '';
+
+            renderAutopay();
+
+            alert("Autopay entry added.");
+
+        }
